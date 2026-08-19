@@ -1,0 +1,8 @@
+# IT3091 Group 76 project dependencies
+# Exact versions will be finalized after the development environment is agreed.
+
+pandas
+numpy
+matplotlib
+scikit-learn
+jupyter
