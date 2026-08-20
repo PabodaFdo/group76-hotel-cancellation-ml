@@ -1,0 +1,18 @@
+project:
+  group: 76
+  module: "IT3091 Machine Learning"
+  track: "Guided Data Track"
+  domain: "Tourism & Hospitality"
+  dataset: "Hotel Booking Demand"
+  primary_lens: "Cancellation Risk"
+
+experiment:
+  target: null
+  random_state: 42
+  test_size: 0.20
+  validation_strategy: null
+
+paths:
+  raw_data: "data/raw/"
+  processed_data: "data/processed/"
+  results: "results/"
