@@ -20,7 +20,7 @@ The model should not automatically cancel, reject, penalize, or otherwise make d
 
 ## Intended Decision Timing
 
-The cancellation-risk prediction should be generated after a booking has been recorded but before its final cancellation or stay outcome is known.
+The cancellation-risk prediction should after a reservation is created but before its final outcome is known.
 
 At the selected prediction point, the model should only use information that would genuinely be available to the hotel at that time.
 
@@ -40,11 +40,11 @@ Risk information can support more realistic forecasting of expected room demand 
 
 ### Operational Planning
 
-Expected occupancy affects staffing, housekeeping, room preparation, food and beverage requirements, and other operational resources. Cancellation-risk information may therefore help operations teams make better-informed planning decisions.
+Changes in expected occupancy can affect housekeeping, staffing, room preparation, and other hotel resources.Cancellation-risk information may therefore help operations teams make better-informed planning decisions.
 
 ### Customer Management
 
-Bookings identified as higher risk may be reviewed for appropriate customer-management actions, such as confirmation reminders or other reasonable engagement strategies. These actions should be applied carefully and should not assume that a high-risk booking will definitely be cancelled.
+Bookings with relatively higher predicted cancellation risk could be considered for appropriate customer-management actions, such as confirmation reminders or other reasonable engagement strategies. These actions should be applied carefully and should not assume that a high-risk booking will definitely be cancelled.
 
 ### Decision Prioritization
 
