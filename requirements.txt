@@ -1,8 +1,6 @@
-# IT3091 Group 76 project dependencies
-# Exact versions will be finalized after the development environment is agreed.
 
-pandas
-numpy
-matplotlib
-scikit-learn
+numpy==1.26.4
+pandas==2.2.2
+matplotlib==3.9.2
+scikit-learn==1.5.1
 jupyter
