@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Group 76 — Hotel Booking Cancellation Risk Prediction using a fitted Random Forest pipeline">
+  <title>Group 76 | Hotel Cancellation Risk Intelligence</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+  <style>
+    .metric-accuracy { --accent: #2196F3; }
+    .metric-precision { --accent: #9C27B0; }
+    .metric-recall { --accent: #FF9800; }
+    .metric-f1 { --accent: #4CAF50; }
+    .metric-roc-auc { --accent: #3F51B5; }
+    .metric-pr-auc { --accent: #009688; }
+    .kpi { border-top: 4px solid var(--accent, #ccc); background-color: color-mix(in srgb, var(--accent) 3%, white); }
+    .kpi-icon { color: var(--accent) !important; font-style: normal; }
+    .kpi strong { color: var(--accent) !important; }
+    .summary-box { background: #fbfefd; border: 1px solid #e0efeb; border-radius: 8px; padding: 15px; margin-top: 20px; font-size: 12px; color: #193540; }
+    .summary-box p { margin: 5px 0; }
+    .workflow-box { margin-bottom: 25px; padding: 15px; background: #eaf4f1; border-radius: 8px; text-align: center; font-size: 13px; color: #16826f; }
+    .insights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#overview" aria-label="Group 76 Hotel Analytics home">
+        <span class="brand-symbol" aria-hidden="true">H<span class="brand-star">✦</span></span>
+        <span><strong>HorizonStay</strong><small>GROUP 76 · IT3091</small></span>
+      </a>
+      <nav class="topnav" aria-label="Main navigation">
+        <a href="#overview">Overview</a>
+        <a href="#eda">Exploratory Data Analysis</a>
+        <a href="#analytics">Model Performance</a>
+        <a href="#predictor" class="nav-primary">Try prediction <span aria-hidden="true">↗</span></a>
+        <a href="#insights">Business Insights</a>
+      </nav>
+      <div class="model-status" id="model-status" role="status"><span class="status-dot"></span><span>Checking model...</span></div>
+    </header>
+
+    <main>
+      <section class="hero" id="overview">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="small-sparkle">✦</span> MACHINE LEARNING · HOSPITALITY INTELLIGENCE</p>
+          <h1>Know the risk.<br><em>Plan with confidence.</em></h1>
+          <p class="hero-desc">Hotel booking cancellations create uncertainty in revenue forecasting, room inventory and operational planning. This system estimates booking cancellation risk to support data-informed hotel management decisions.</p>
+          <div class="summary-box">
+            <p><strong>Project:</strong> Hotel Booking Demand — Cancellation Risk Prediction</p>
+            <p><strong>Dataset:</strong> Original: 119,390 records · Validated: 119,210 records<br>Training: 95,334 records · Test: 23,876 records</p>
+            <p><strong>Selected Model:</strong> Tuned Random Forest (21 features)</p>
+            <p><strong>Classification Threshold:</strong> 0.40</p>
+          </div>
+          <div class="hero-actions" style="margin-top: 20px;">
+            <a href="#predictor" class="cta">Predict a booking <span>↗</span></a>
+            <a href="#analytics" class="secondary-link">Explore model results <span>→</span></a>
+          </div>
+          <p class="disclaimer-hero">Research prototype · Historical training data from 2015–2017 · Not for autonomous booking decisions</p>
+        </div>
+        <div class="hero-visual" aria-label="Project overview statistics">
+          <div class="visual-card visual-main">
+            <div class="visual-top"><span>SELECTED MODEL</span><span class="mini-pill">FINALIZED</span></div>
+            <p class="visual-title">Random Forest<span>+</span></p>
+            <p class="visual-subtitle">Tuned classifier · Decision support</p>
+            <div class="visual-rule"></div>
+            <div class="visual-data"><span>Cancellation recall</span><strong id="hero-recall">74.86%</strong></div>
+            <div class="meter"><div style="width:74.86%"></div></div>
+            <div class="visual-data"><span>Classification threshold</span><strong>0.40</strong></div>
+          </div>
+          <div class="visual-floating visual-floating-a"><span>VALIDATED BOOKINGS</span><strong>119,210</strong></div>
+          <div class="visual-floating visual-floating-b"><span>TEST PR-AUC</span><strong id="hero-prauc">0.8434</strong></div>
+        </div>
+      </section>
+
+      <section id="eda" class="analytics-section" style="background:#fff;">
+        <div class="section-intro"><span class="section-tag">02 / DATA UNDERSTANDING</span><h2>Exploratory Data Analysis — Understanding Hotel Booking Patterns</h2><p>Historical associations between booking characteristics and cancellations. Findings represent statistical patterns, not causal effects.</p></div>
+        <div class="eda-grid">
+          <article class="eda-card">
+            <div><span class="micro-tag">DISTRIBUTION</span><h3>Booking Cancellation Distribution</h3></div>
+            <img src="/charts/m2_target_distribution.png" alt="Cancellation distribution" loading="lazy">
+            <p>The original dataset contains approximately 37% cancelled bookings.</p>
+            <p><strong>Business insight:</strong> Cancellation risk is a significant factor for hotel occupancy forecasting and reservation planning.</p>
+          </article>
+          <article class="eda-card">
+            <div><span class="micro-tag">LEAD TIME</span><h3>Lead Time and Cancellation Risk</h3></div>
+            <img src="/charts/m3_lead_time_cancellation_rate.png" alt="Lead time vs cancellation" loading="lazy">
+            <p>Bookings made further in advance have historically higher cancellation frequencies.</p>
+            <p><strong>Business insight:</strong> Longer-lead-time reservations may benefit from additional monitoring or timely confirmation reminders.</p>
+          </article>
+          <article class="eda-card">
+            <div><span class="micro-tag">HOTEL TYPE</span><h3>Cancellation Rate by Hotel Type</h3></div>
+            <img src="/charts/m4_hotel_type_cancellation.png" alt="Hotel type cancellation rates" loading="lazy">
+            <p>City Hotels experience a notably higher cancellation rate compared to Resort Hotels.</p>
+            <p><strong>Business insight:</strong> Different hotel types exhibit different historical cancellation patterns, so operational planning should consider property-specific booking behavior.</p>
+          </article>
+          <article class="eda-card">
+            <div><span class="micro-tag">MARKET SEGMENT</span><h3>Cancellation by Market Segment</h3></div>
+            <img src="/charts/m4_market_segment_cancellation.png" alt="Market segment cancellation rates" loading="lazy">
+            <p>Groups and Online TAs exhibit higher cancellation rates compared to Direct or Corporate bookings.</p>
+            <p><strong>Business insight:</strong> Identifying segments with historically higher cancellation rates can help hotel managers prioritize reservation monitoring.</p>
+          </article>
+          <article class="eda-card">
+            <div><span class="micro-tag">SEASONALITY</span><h3>Seasonal Cancellation Patterns</h3></div>
+            <img src="/charts/m4_arrival_month_cancellation.png" alt="Monthly cancellation rates" loading="lazy">
+            <p>Cancellation rates fluctuate by arrival month, demonstrating seasonal variation in historical demand.</p>
+            <p><strong>Business insight:</strong> Seasonal booking patterns can inform staffing, room allocation and capacity planning.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="metrics-section" id="analytics" aria-label="Final test metrics">
+        <div class="section-intro"><span class="section-tag">03 / MEASURED ON UNSEEN BOOKINGS</span><h2>Model Performance</h2><p>Evaluated on 23,876 held-out test bookings not used during training or model selection.</p></div>
+        <div class="kpi-grid">
+          <article class="kpi metric-accuracy"><span class="kpi-icon">🎯</span><p>Accuracy</p><strong id="metric-accuracy">—</strong><small>Percentage of test bookings classified correctly.</small></article>
+          <article class="kpi metric-precision"><span class="kpi-icon">✨</span><p>Precision</p><strong id="metric-precision">—</strong><small>Among bookings flagged for cancellation, the proportion that actually cancelled.</small></article>
+          <article class="kpi metric-recall"><span class="kpi-icon">🔍</span><p>Recall</p><strong id="metric-recall">—</strong><small>Proportion of actual cancellations correctly identified.</small></article>
+          <article class="kpi metric-f1"><span class="kpi-icon">⚖️</span><p>F1-score</p><strong id="metric-f1">—</strong><small>Balanced summary of precision and recall.</small></article>
+          <article class="kpi metric-roc-auc"><span class="kpi-icon">📈</span><p>ROC-AUC</p><strong id="metric-roc-auc">—</strong><small>Ability to distinguish outcomes across thresholds.</small></article>
+          <article class="kpi metric-pr-auc"><span class="kpi-icon">📉</span><p>PR-AUC</p><strong id="metric-pr-auc">—</strong><small>Summary of the precision-recall trade-off.</small></article>
+        </div>
+        
+        <div class="analytics-grid" style="margin-top: 30px;">
+          <article class="chart-card model-comparison">
+            <div class="card-heading"><h3>Model comparison</h3><span>5-FOLD CV · PR-AUC</span></div>
+            <div class="bar-list">
+              <div class="bar-row"><span>Random Forest <small>(Tuned)</small></span><div class="bar-track"><span style="width:84.20%; --bar:#10a6a0"></span></div><strong>0.8420</strong></div>
+              <div class="bar-row"><span>Decision Tree <small>(Tuned)</small></span><div class="bar-track"><span style="width:81.77%"></span></div><strong>0.8177</strong></div>
+              <div class="bar-row"><span>Gradient Boosting</span><div class="bar-track"><span style="width:81.77%"></span></div><strong>0.8177</strong></div>
+              <div class="bar-row"><span>Logistic Regression</span><div class="bar-track"><span style="width:79.06%"></span></div><strong>0.7906</strong></div>
+              <div class="bar-row"><span>Dummy Classifier</span><div class="bar-track"><span style="width:36.98%"></span></div><strong>0.3698</strong></div>
+            </div>
+            <p class="chart-foot">The final Random Forest was selected using training-data validation results and the project's chosen evaluation criteria. Its classification threshold was set to 0.40 before evaluating the held-out test set.</p>
+          </article>
+          <article class="chart-card confusion">
+            <div class="card-heading"><h3>Test confusion matrix</h3><span>THRESHOLD 0.40</span></div>
+            <div class="matrix-header"><span></span><span>Predicted no</span><span>Predicted yes</span></div>
+            <div class="matrix-grid"><span class="matrix-axis">Actual no</span><div class="matrix-cell correct"><strong>12,280</strong><small>True negative</small></div><div class="matrix-cell incorrect"><strong>2,678</strong><small>False positive</small></div><span class="matrix-axis">Actual yes</span><div class="matrix-cell incorrect"><strong>2,242</strong><small>False negative</small></div><div class="matrix-cell correct"><strong>6,676</strong><small>True positive</small></div></div>
+            <div class="matrix-legend" style="font-size:10px; margin-top:20px; color:#6b8085;">
+              <p style="margin:2px 0;"><strong>True positives:</strong> correctly identified cancellations.</p>
+              <p style="margin:2px 0;"><strong>False positives:</strong> bookings flagged as risky that did not cancel.</p>
+              <p style="margin:2px 0;"><strong>False negatives:</strong> cancellations the model missed.</p>
+              <p style="margin:2px 0;"><strong>True negatives:</strong> bookings correctly identified as not cancelled.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="predictor" class="predictor-section">
+        <div class="section-intro"><span class="section-tag">04 / LIVE INFERENCE</span><h2>Booking risk assessment.</h2><p>Enter a booking's details to generate a <strong>real prediction</strong> from the fitted model.</p></div>
+        <div class="workflow-box">
+          <strong>How This Prediction Works</strong><br>
+          Booking Information &rarr; Trained Random Forest &rarr; Cancellation Risk Assessment<br>
+          <small style="color: #4b5d63;">The model uses historical booking patterns to estimate cancellation risk.</small>
+        </div>
+        <div class="predict-layout">
+          <form id="booking-form" class="form-panel" autocomplete="off">
+            <div class="form-panel-head"><div><h3>New booking assessment</h3><p>Fields marked * are required.</p></div><span class="form-badge">21 MODEL FEATURES</span></div>
+            <fieldset>
+              <legend><span class="step-no">01</span> Stay details</legend>
+              <div class="fields-grid">
+                <label>Hotel type *
+                  <select name="hotel" required><option>City Hotel</option><option>Resort Hotel</option></select>
+                </label>
+                <label>Arrival date * <small class="hint">Historical demo: choose 2015–2017</small>
+                  <input type="date" name="arrival_date" value="2017-08-15" min="2015-01-01" max="2035-12-31" required>
+                </label>
+                <label>Booking lead time (days) *
+                  <input type="number" name="lead_time" value="69" min="0" max="1000" step="1" required>
+                </label>
+                <label>Country code * <small class="hint">Three-letter code, e.g. PRT</small>
+                  <input type="text" name="country" list="country-options" maxlength="7" value="PRT" placeholder="PRT" required>
+                  <datalist id="country-options"><option value="PRT"><option value="GBR"><option value="FRA"><option value="ESP"><option value="DEU"><option value="ITA"><option value="IRL"><option value="BEL"><option value="BRA"><option value="NLD"><option value="USA"><option value="CHE"><option value="CN"><option value="AUS"><option value="Unknown"></datalist>
+                </label>
+                <label>Weekend nights *<input type="number" name="stays_in_weekend_nights" value="1" min="0" max="60" required></label>
+                <label>Weekday nights *<input type="number" name="stays_in_week_nights" value="2" min="0" max="70" required></label>
+                <label>Adults *<input type="number" name="adults" value="2" min="0" max="60" required></label>
+                <label>Children *<input type="number" name="children" value="0" min="0" max="20" required></label>
+                <label>Babies *<input type="number" name="babies" value="0" min="0" max="20" required></label>
+                <label>Reserved room type *
+                  <select name="reserved_room_type" required><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option><option>L</option></select>
+                </label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend><span class="step-no">02</span> Booking channel &amp; category</legend>
+              <div class="fields-grid">
+                <label>Market segment *<select name="market_segment" required><option>Online TA</option><option>Offline TA/TO</option><option>Groups</option><option>Direct</option><option>Corporate</option><option>Complementary</option><option>Aviation</option><option>Undefined</option></select></label>
+                <label>Distribution channel *<select name="distribution_channel" required><option>TA/TO</option><option>Direct</option><option>Corporate</option><option>GDS</option><option>Undefined</option></select></label>
+                <label>Customer type *<select name="customer_type" required><option>Transient</option><option>Transient-Party</option><option>Contract</option><option>Group</option></select></label>
+                <label>Meal plan *<select name="meal" required><option>BB</option><option>HB</option><option>SC</option><option>FB</option><option>Undefined</option></select></label>
+              </div>
+            </fieldset>
+            <details class="advanced-fields">
+              <summary>Additional booking history <span>Recommended for accurate inputs · <span class="arrow">⌄</span></span></summary>
+              <div class="fields-grid advanced-grid">
+                <label>Repeated guest? *<select name="is_repeated_guest" required><option value="0">No</option><option value="1">Yes</option></select></label>
+                <label>Previous cancellations *<input type="number" name="previous_cancellations" value="0" min="0" max="50" required></label>
+                <label>Previous non-cancelled bookings *<input type="number" name="previous_bookings_not_canceled" value="0" min="0" max="100" required></label>
+                <label>Days in waiting list *<input type="number" name="days_in_waiting_list" value="0" min="0" max="500" required></label>
+              </div>
+            </details>
+            <div class="form-footer">
+              <p>Local-only prototype. Booking details are processed by your local Python server and are not stored.</p>
+              <button id="predict-btn" type="submit" class="cta predict-submit">Calculate cancellation risk <span>→</span></button>
+            </div>
+          </form>
+
+          <aside class="result-column">
+            <div class="result-panel" id="result-panel" aria-live="polite">
+              <div class="result-head"><span>RISK ASSESSMENT</span><span class="result-live"><span class="status-dot"></span> LIVE MODEL</span></div>
+              <div class="ring-wrap"><div class="risk-ring" id="risk-ring"><div class="ring-inner"><strong id="risk-score">—</strong><span>CANCELLATION RISK</span></div></div></div>
+              <h3 id="risk-title">Awaiting booking details</h3>
+              <p id="risk-message">Complete the form and press Calculate cancellation risk to get a model-based result.</p>
+              <div class="threshold-row"><span>Alert threshold</span><strong>40%</strong></div>
+              <div class="threshold-track"><span></span></div>
+              <div id="result-warnings" class="result-warnings" hidden></div>
+              <div id="result-error" class="result-error" role="alert" hidden></div>
+              <div class="result-note"><span class="lock-icon">i</span> Predictions are statistical estimates, not guarantees. Do not automatically cancel or penalize reservations.</div>
+            </div>
+            <div class="side-guide"><span class="side-guide-icon">✳</span><div><strong>How to interpret this score</strong><p>A predicted risk of 60% means the model assigns a cancellation probability of 0.60. Bookings at or above 40% receive an elevated-risk flag for human review.</p></div></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="insights" class="analytics-section">
+        <div class="section-intro"><span class="section-tag">05 / BUSINESS INSIGHTS</span><h2>Business Insights &amp; Operational Recommendations</h2><p>Proposed applications of the prediction system for hotel management.</p></div>
+        <div class="insights-grid">
+          <article class="kpi" style="--accent: #2c3e50; min-height: auto;">
+            <p style="margin-bottom:5px; font-size:14px;"><strong>1. Proactive Reservation Follow-Up</strong></p>
+            <small style="color:#526a70; font-size:12px; line-height: 1.4;">Use elevated-risk predictions to prioritize optional booking confirmation reminders and appropriate customer communication.</small>
+            <div style="margin-top:12px; font-size:11px; color:var(--teal);"><strong>Benefit:</strong> Helps staff focus attention on reservations requiring review.</div>
+          </article>
+          <article class="kpi" style="--accent: #2c3e50; min-height: auto;">
+            <p style="margin-bottom:5px; font-size:14px;"><strong>2. Better Occupancy Planning</strong></p>
+            <small style="color:#526a70; font-size:12px; line-height: 1.4;">Use aggregate predicted cancellation-risk trends to support occupancy estimates and room inventory planning.</small>
+            <div style="margin-top:12px; font-size:11px; color:var(--teal);"><strong>Benefit:</strong> Provides additional information for operational forecasting.</div>
+          </article>
+          <article class="kpi" style="--accent: #2c3e50; min-height: auto;">
+            <p style="margin-bottom:5px; font-size:14px;"><strong>3. Smarter Staffing &amp; Resources</strong></p>
+            <small style="color:#526a70; font-size:12px; line-height: 1.4;">Consider historical booking and cancellation patterns when planning housekeeping, front-desk staffing and resources.</small>
+            <div style="margin-top:12px; font-size:11px; color:var(--teal);"><strong>Benefit:</strong> Supports more informed operational planning.</div>
+          </article>
+          <article class="kpi" style="--accent: #2c3e50; min-height: auto;">
+            <p style="margin-bottom:5px; font-size:14px;"><strong>4. Market Segment Monitoring</strong></p>
+            <small style="color:#526a70; font-size:12px; line-height: 1.4;">Use historical EDA findings to identify booking segments that may require closer monitoring.</small>
+            <div style="margin-top:12px; font-size:11px; color:var(--teal);"><strong>Benefit:</strong> Encourages segment-aware reservation management.</div>
+          </article>
+          <article class="kpi" style="--accent: #2c3e50; min-height: auto;">
+            <p style="margin-bottom:5px; font-size:14px;"><strong>5. Human-Informed Support</strong></p>
+            <small style="color:#526a70; font-size:12px; line-height: 1.4;">Treat ML predictions as recommendations requiring appropriate human judgment.</small>
+            <div style="margin-top:12px; font-size:11px; color:var(--teal);"><strong>Benefit:</strong> Reduces the risk of making consequential decisions solely from a model output.</div>
+          </article>
+        </div>
+
+        <div style="margin-top: 40px; max-width: 700px; margin-left: auto; margin-right: auto;" class="chart-card">
+          <div class="card-heading"><h3>Feature Importance Insights</h3></div>
+          <p style="font-size:12px; color:#6b8085; margin-bottom: 25px; line-height: 1.6;">Feature importance indicates which variables the model used most strongly for prediction. It does not establish causal effects or explain why an individual booking received a particular score. Country-based patterns require fairness and responsible-use considerations.</p>
+          <div class="bar-list">
+            <div class="bar-row"><span>Country</span><div class="bar-track"><span style="width:100%; --bar:#10a6a0"></span></div><strong>25.0%</strong></div>
+            <div class="bar-row"><span>Market segment</span><div class="bar-track"><span style="width:64.6%; --bar:#92c8bf"></span></div><strong>16.2%</strong></div>
+            <div class="bar-row"><span>Lead time</span><div class="bar-track"><span style="width:63.0%; --bar:#92c8bf"></span></div><strong>15.8%</strong></div>
+            <div class="bar-row"><span>Customer type</span><div class="bar-track"><span style="width:37.6%; --bar:#92c8bf"></span></div><strong>9.4%</strong></div>
+            <div class="bar-row"><span>Previous cancellations</span><div class="bar-track"><span style="width:34.2%; --bar:#92c8bf"></span></div><strong>8.6%</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="ethics-panel"><div><span class="section-tag">06 / RESPONSIBLE USE</span><h2>A planning aid, not an automatic decision.</h2><p>Predictions are statistical estimates, not guarantees. This model was developed using historical 2015–2017 bookings and has not been validated for current hotel operations. Do not automatically cancel, reject or penalize reservations based on the score.</p></div><a href="#predictor" class="ethics-back">Back to predictor ↗</a></section>
+    </main>
+    <footer><span>© Group 76 · IT3091 Machine Learning</span><span>Hotel Booking Demand — Cancellation Risk Prediction · Research prototype</span></footer>
+  </div>
+</body>
+</html>
